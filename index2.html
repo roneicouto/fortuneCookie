@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Biscoitinhos da Sorte — Vídeo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Simple transitions for fade */
+    #anim-video { transition: opacity 1.5s ease-in-out; }
+    #text-overlay { transition: opacity 0.9s ease-in-out; }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans">
+  <main class="w-full max-w-2xl p-6 text-center">
+    <h1 class="text-2xl font-semibold mb-4">Biscoitinhos da Sorte — Animação</h1>
+
+    <div id="video-area" class="relative mx-auto bg-white rounded-lg shadow-lg overflow-hidden" style="max-width:640px;">
+      <!-- Main video. User clicks to start. -->
+      <video id="anim-video" src="assets/animacao.mp4" preload="metadata" playsinline tabindex="0"
+             class="w-full h-auto bg-black" aria-label="Animação do biscoito — clique para reproduzir"></video>
+
+      <!-- Overlay that will reveal the fortune message (starts hidden) -->
+      <div id="text-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none bg-black/40">
+        <div class="bg-white bg-opacity-95 p-6 rounded-lg shadow-lg max-w-lg mx-4">
+          <p id="fortune-message" class="text-gray-800 text-lg italic"></p>
+          <button id="replay-button" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Pegar outro biscoito</button>
+        </div>
+      </div>
+
+      <!-- play hint (small) -->
+      <div class="absolute left-4 top-4 text-sm text-white/90 bg-black/40 px-2 py-1 rounded">Interaja com seu biscoitinho da sorte</div>
+    </div>
+
+    <p class="mt-4 text-sm text-gray-600">Se o vídeo não aparecer, verifique se <code>assets/animacao.mp4</code> existe.</p>
+  </main>
+
+  <script>
+    (function(){
+      const video = document.getElementById('anim-video');
+      const overlay = document.getElementById('text-overlay');
+      const fortuneMessage = document.getElementById('fortune-message');
+      const replayButton = document.getElementById('replay-button');
+
+      const fortunes = [
+        'A persistência é o caminho do êxito.',
+        'Acredite em milagres, mas não dependa deles.',
+        'O saber não ocupa lugar.',
+        'A simplicidade é o último grau de sofisticação.',
+        'Sorte é o que acontece quando a preparação encontra a oportunidade.',
+        'Otimismo é esperar pelo melhor. Confiança é saber lidar com o pior.',
+        'Seja a mudança que você deseja ver no mundo.',
+        'A vida é uma jornada, não um destino.',
+        'A paciência é amarga, mas seu fruto é doce.',
+        'O conhecimento fala, mas a sabedoria escuta.'
+      ];
+
+  let played = false;
+  let fadeStarted = false;
+  // Para vídeo de 8s, iniciar fade 2s antes do fim produz um bom crossfade
+  let fadeStartTime = 2.0; // seconds before end to start fade
+  let pendingFortune = null; // when set, will be shown at next fade
+
+      function chooseFortune(){
+        const idx = Math.floor(Math.random() * fortunes.length);
+        return fortunes[idx];
+      }
+
+      // Start playback when user clicks or presses Enter/Space on the video element
+      function startPlay(){
+        if (!video) return;
+        // If a fortune was preselected (from replay), use it; otherwise pick one now
+        if (pendingFortune) {
+          fortuneMessage.textContent = pendingFortune;
+          pendingFortune = null;
+        } else {
+          fortuneMessage.textContent = chooseFortune();
+        }
+        // try to play
+        const p = video.play();
+        if (p && p.catch) p.catch(()=>{
+          // ignore playback errors (autoplay policies) — user initiated so should be fine
+        });
+        played = true;
+      }
+
+      // When the video metadata is loaded, compute when to start fade
+      video.addEventListener('loadedmetadata', () => {
+        if (isFinite(video.duration) && video.duration > fadeStartTime) {
+          // cap the fade start to at most 2.0s or a quarter of the duration
+          fadeStartTime = Math.min(2.0, video.duration / 4);
+        }
+      });
+
+      // During playback, check current time to trigger fade
+      video.addEventListener('timeupdate', () => {
+        if (fadeStarted) return;
+        if (!isFinite(video.duration)) return;
+        if (video.currentTime >= (video.duration - fadeStartTime)) {
+          fadeStarted = true;
+          // fade the video out and reveal overlay
+          video.style.opacity = '0';
+          // make overlay visible
+          overlay.style.pointerEvents = 'auto';
+          overlay.style.opacity = '1';
+          // after fade completes ensure video is paused at end
+          setTimeout(()=>{
+            try { video.pause(); } catch(e){}
+          }, 1600);
+        }
+      });
+
+      // If video ends naturally and fade hasn't started, ensure overlay shows
+      video.addEventListener('ended', () => {
+        overlay.style.pointerEvents = 'auto';
+        overlay.style.opacity = '1';
+      });
+
+      // Clicking or keyboard on video starts playback
+      video.addEventListener('click', () => startPlay());
+      video.addEventListener('keydown', (e)=>{
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startPlay(); }
+      });
+
+      // Replay button resets state but does NOT autoplay. It preloads the next fortune
+      // so it will appear when the user plays the video and it fades at the end.
+      replayButton.addEventListener('click', () => {
+        // prepare next fortune but do not reveal it yet
+        pendingFortune = chooseFortune();
+        // hide overlay and reset visuals
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+        video.style.opacity = '1';
+        fadeStarted = false;
+        // reset video to start and pause — user must interact to play
+        try { video.currentTime = 0; video.pause(); } catch(e){}
+        // do not call startPlay() here; require user to click/press to start playback
+      });
+
+      // Accessibility: announce fortunes
+      const live = document.createElement('div');
+      live.setAttribute('aria-live','polite');
+      live.className = 'sr-only';
+      document.body.appendChild(live);
+      // whenever fortune text changes, update live region
+      const obs = new MutationObserver(()=>{ live.textContent = fortuneMessage.textContent; });
+      obs.observe(fortuneMessage, { childList: true, subtree: true });
+
+    })();
+  </script>
+</body>
+</html>
