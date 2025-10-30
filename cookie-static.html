@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Biscoitinhos da Sorte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    #cookie-wrapper { position: relative; display: inline-block; }
+    #fortune-display {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      pointer-events: none;
+      width: 90%;
+      max-width: 600px;
+    }
+    #fortune-display.show { opacity: 1; }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen font-sans">
+  <a href="index.html" class="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors group">
+    <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+    </svg>
+    <span class="text-sm font-medium">Seleção de Ideias</span>
+  </a>
+  <main class="text-center p-6 flex flex-col items-center">
+    <div id="cookie-wrapper" class="mb-6">
+      <!-- Use PNG assets (cookie-fechado1.png / cookie-aberto1.png) -->
+      <img id="cookie-img"
+           src="assets/cookie-fechado1.png"
+           alt="Biscoito da sorte fechado"
+           role="button"
+           tabindex="0"
+           aria-pressed="false"
+           class="w-96 h-96 md:w-[32rem] md:h-[32rem] lg:w-[40rem] lg:h-[40rem] cursor-pointer hover:scale-105 transition-transform duration-300 mx-auto">
+      
+      <div id="fortune-display">
+        <div class="bg-white/10 p-6 rounded-lg shadow-2xl backdrop-blur-sm">
+          <p id="fortune-message" class="text-gray-800 text-xl md:text-2xl font-medium italic"></p>
+        </div>
+      </div>
+    </div>
+
+    <button id="reset-button" class="hidden mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition-colors">
+      Pegar outro biscoito
+    </button>
+  </main>
+
+  <script>
+    (function(){
+  const cookieImg = document.getElementById('cookie-img');
+      const fortuneDisplay = document.getElementById('fortune-display');
+      const fortuneMessage = document.getElementById('fortune-message');
+      const resetButton = document.getElementById('reset-button');
+
+  // No external image files required — we toggle inline SVGs
+
+      const fortunes = [
+        'A persistência é o caminho do êxito.',
+        'Acredite em milagres, mas não dependa deles.',
+        'O saber não ocupa lugar.',
+        'A simplicidade é o último grau de sofisticação.',
+        'Sorte é o que acontece quando a preparação encontra a oportunidade.',
+        'Otimismo é esperar pelo melhor. Confiança é saber lidar com o pior.',
+        'Seja a mudança que você deseja ver no mundo.',
+        'A vida é uma jornada, não um destino.',
+        'A paciência é amarga, mas seu fruto é doce.',
+        'O conhecimento fala, mas a sabedoria escuta.'
+      ];
+
+      let isCookieOpen = false;
+
+      function openCookie(){
+        if(isCookieOpen) return;
+        const randomIndex = Math.floor(Math.random() * fortunes.length);
+        fortuneMessage.innerText = fortunes[randomIndex];
+        // swap to open PNG
+        cookieImg.src = 'assets/cookie-aberto1.png';
+        cookieImg.alt = 'Biscoito da sorte aberto';
+        cookieImg.setAttribute('aria-pressed','true');
+        fortuneDisplay.classList.add('show');
+        resetButton.classList.remove('hidden');
+        isCookieOpen = true;
+        cookieImg.classList.remove('cursor-pointer','hover:scale-105');
+      }
+
+      function resetCookie(){
+        fortuneDisplay.classList.remove('show');
+        resetButton.classList.add('hidden');
+        cookieImg.src = 'assets/cookie-fechado1.png';
+        cookieImg.alt = 'Biscoito da sorte fechado';
+        cookieImg.setAttribute('aria-pressed','false');
+        isCookieOpen = false;
+        fortuneMessage.innerText = '';
+        cookieImg.classList.add('cursor-pointer','hover:scale-105');
+      }
+
+      // Click + keyboard support on cookie image
+      cookieImg.addEventListener('click', openCookie);
+      cookieImg.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCookie(); }
+        if (e.key === 'Escape') { resetCookie(); }
+      });
+      resetButton.addEventListener('click', resetCookie);
+    })();
+  </script>
+</body>
+</html>
