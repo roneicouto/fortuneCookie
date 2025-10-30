@@ -6,11 +6,29 @@
   <title>Biscoitinhos da Sorte</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    #fortune-display { transition: opacity 0.7s ease-in-out, max-height 0.6s ease-in-out; }
+    #cookie-wrapper { position: relative; display: inline-block; }
+    #fortune-display {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      pointer-events: none;
+      width: 90%;
+      max-width: 600px;
+    }
+    #fortune-display.show { opacity: 1; }
   </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen font-sans">
-  <main class="text-center p-6">
+  <a href="landing.html" class="absolute top-6 left-6 flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors group">
+    <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+    </svg>
+    <span class="text-sm font-medium">Seleção de Ideias</span>
+  </a>
+  <main class="text-center p-6 flex flex-col items-center">
     <div id="cookie-wrapper" class="mb-6">
       <!-- Use PNG assets (cookie-fechado1.png / cookie-aberto1.png) -->
       <img id="cookie-img"
@@ -19,12 +37,12 @@
            role="button"
            tabindex="0"
            aria-pressed="false"
-           class="w-48 h-48 md:w-64 md:h-64 cursor-pointer hover:scale-105 transition-transform duration-300 mx-auto">
-    </div>
-
-    <div id="fortune-display" class="opacity-0 max-h-0 overflow-hidden transition-all duration-700 ease-in-out mx-auto">
-      <div class="bg-white p-4 rounded-lg shadow-lg inline-block max-w-md">
-        <p id="fortune-message" class="text-gray-700 text-lg italic"></p>
+           class="w-96 h-96 md:w-[32rem] md:h-[32rem] lg:w-[40rem] lg:h-[40rem] cursor-pointer hover:scale-105 transition-transform duration-300 mx-auto">
+      
+      <div id="fortune-display">
+        <div class="bg-white/10 p-6 rounded-lg shadow-2xl backdrop-blur-sm">
+          <p id="fortune-message" class="text-gray-800 text-xl md:text-2xl font-medium italic"></p>
+        </div>
       </div>
     </div>
 
@@ -65,16 +83,14 @@
         cookieImg.src = 'assets/cookie-aberto1.png';
         cookieImg.alt = 'Biscoito da sorte aberto';
         cookieImg.setAttribute('aria-pressed','true');
-        fortuneDisplay.classList.remove('opacity-0');
-        fortuneDisplay.style.maxHeight = '400px';
+        fortuneDisplay.classList.add('show');
         resetButton.classList.remove('hidden');
         isCookieOpen = true;
         cookieImg.classList.remove('cursor-pointer','hover:scale-105');
       }
 
       function resetCookie(){
-        fortuneDisplay.classList.add('opacity-0');
-        fortuneDisplay.style.maxHeight = '0';
+        fortuneDisplay.classList.remove('show');
         resetButton.classList.add('hidden');
         cookieImg.src = 'assets/cookie-fechado1.png';
         cookieImg.alt = 'Biscoito da sorte fechado';
