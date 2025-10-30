@@ -3,3 +3,6 @@
 *.log
 assets/*.png
 assets/*.webp
+
+
+.github\instructions.md
